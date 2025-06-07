@@ -79,27 +79,22 @@
 
     const image = document.getElementById("moodiiImage");
     const box = document.getElementById("emotion-message");
-
-    // ✅ 套用圖片
     image.src = "images/" + (moodData[mood]?.img || "moodii-default.png");
 
-    // ✅ 打字效果
     function typeText(text, targetElement, delay = 40) {
-    if (!text) {
-      targetElement.textContent = "抱歉，暫時無法取得回應 😢";
-      return;
+      if (!text) {
+        targetElement.textContent = "抱歉，暫時無法取得回應 😢";
+        return;
+      }
+      let index = 0;
+      targetElement.textContent = "";
+      const timer = setInterval(() => {
+        targetElement.textContent += text.charAt(index);
+        index++;
+        if (index >= text.length) clearInterval(timer);
+      }, delay);
     }
 
-    let index = 0;
-    targetElement.textContent = "";
-    const timer = setInterval(() => {
-      targetElement.textContent += text.charAt(index);
-      index++;
-      if (index >= text.length) clearInterval(timer);
-    }, delay);
-  }
-
-    // ✅ 語音
     function speak(text) {
       if ('speechSynthesis' in window) {
         const msg = new SpeechSynthesisUtterance(text);
@@ -111,19 +106,19 @@
       }
     }
 
-    // ✅ 呼叫 AI 回應
-    async function fetchAIResponse(userText) {
+    // ✅ 呼叫 AI API 並傳遞 mood & diaryText
+    async function fetchAIResponse(userText, mood) {
       const res = await fetch('/.netlify/functions/generateResponse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userText })
+        body: JSON.stringify({ userText, mood })
       });
       const data = await res.json();
       return data.reply;
     }
 
-    // ✅ 展示結果
-    fetchAIResponse(diaryText).then(reply => {
+    // ✅ 顯示 AI 回覆
+    fetchAIResponse(diaryText, mood).then(reply => {
       typeText(reply, box);
       speak(reply);
     });
