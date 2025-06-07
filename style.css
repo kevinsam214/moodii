@@ -408,3 +408,30 @@ body {
   color: #603c3c;
   margin: 0;
 }
+
+#bgm-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  background-color: #fff8f5;
+  color: #e7977c;
+  border: 2px solid #f5cfcf;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+#bgm-toggle:hover {
+  background-color: #ffece4;
+  transform: scale(1.1);
+  color: #d87259;
+}
