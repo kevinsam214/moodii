@@ -7,6 +7,7 @@
   <title>你的心語精靈回應</title>
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     .container {
       opacity: 0;
@@ -54,63 +55,46 @@
 
 <body>
   <div class="container">
-    <img id="moodiiImage" src="images/moodii-default.png" alt="Moodii 精靈" class="hero-img" />
-    <div id="emotion-message" class="mood-response">載入中...</div>
+    <div id="result-card">
+      <img id="moodiiImage" src="images/moodii-default.png" alt="Moodii 精靈" class="hero-img" />
+      <div id="emotion-message" class="mood-response">載入中...</div>
+    </div>
 
     <button class="main-btn" onclick="window.location.href='index.html'">回首頁</button>
+    <button class="secondary-btn" id="download-img">📸 下載心情回顧圖</button>
     <button class="secondary-btn" onclick="window.location.href='history.html'">查看歷史紀錄</button>
   </div>
 
   <script>
     const mood = localStorage.getItem("selectedMood");
+    const diaryText = localStorage.getItem("todayDiaryText") || "今天的日記...";
 
     const moodData = {
-      happy: {
-        img: "hedgehog-happy.png",
-        text: "你今天的笑容，好有力量 💛"
-      },
-      neutral: {
-        img: "hedgehog-neutral.png",
-        text: "平淡也很棒，給自己一點空白吧 🌿"
-      },
-      sad: {
-        img: "hedgehog-sad.png",
-        text: "我在這裡陪你，難過沒關係 💧"
-      },
-      tired: {
-        img: "hedgehog-tired.png",
-        text: "先把疲憊交給我，我幫你抱抱 💭"
-      },
-      angry: {
-        img: "hedgehog-angry.png",
-        text: "你努力忍住情緒了，真的很棒 ❤️‍🔥"
-      }
+      happy: { img: "hedgehog-happy.png" },
+      neutral: { img: "hedgehog-neutral.png" },
+      sad: { img: "hedgehog-sad.png" },
+      tired: { img: "hedgehog-tired.png" },
+      angry: { img: "hedgehog-angry.png" }
     };
 
     const image = document.getElementById("moodiiImage");
     const box = document.getElementById("emotion-message");
 
-    // 📌 取得對應資料
-    const data = moodData[mood] || {
-      img: "moodii-default.png",
-      text: "你好棒，願你每天都有力量 🍀"
-    };
+    // ✅ 套用圖片
+    image.src = "images/" + (moodData[mood]?.img || "moodii-default.png");
 
-    // 🖼️ 設定圖片
-    image.src = "images/" + data.img;
-
-    // 📝 打字動畫函式
-    function typeText(text, targetElement, delay = 40) {
+    // ✅ 打字效果
+    function typeText(text, target, delay = 40) {
       let index = 0;
-      targetElement.textContent = "";
+      target.textContent = "";
       const timer = setInterval(() => {
-        targetElement.textContent += text.charAt(index);
+        target.textContent += text.charAt(index);
         index++;
         if (index >= text.length) clearInterval(timer);
       }, delay);
     }
 
-    // 🔊 語音朗讀函式
+    // ✅ 語音
     function speak(text) {
       if ('speechSynthesis' in window) {
         const msg = new SpeechSynthesisUtterance(text);
@@ -122,9 +106,33 @@
       }
     }
 
-    // ✅ 啟動打字動畫 + 語音
-    typeText(data.text, box);
-    speak(data.text);
+    // ✅ 呼叫 AI 回應
+    async function fetchAIResponse(userText) {
+      const res = await fetch('/.netlify/functions/generateResponse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userText })
+      });
+      const data = await res.json();
+      return data.reply;
+    }
+
+    // ✅ 展示結果
+    fetchAIResponse(diaryText).then(reply => {
+      typeText(reply, box);
+      speak(reply);
+    });
+
+    // ✅ 截圖儲存
+    document.getElementById("download-img").addEventListener("click", () => {
+      const card = document.getElementById("result-card");
+      html2canvas(card, { backgroundColor: "#FFF9F5" }).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "moodii-share.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
+    });
   </script>
 </body>
 
