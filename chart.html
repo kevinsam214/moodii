@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>情緒統計圖表 - Moodii</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="main-title">📊 心情分析</h1>
+    <p class="hint-text">這是你過去紀錄的情緒分佈：</p>
+    <canvas id="moodChart" width="320" height="320"></canvas>
+    <button class="main-btn" onclick="window.location.href='history.html'">回歷史紀錄</button>
+  </div>
+
+  <script>
+    const raw = JSON.parse(localStorage.getItem("moodHistory")) || [];
+
+    const moodCount = {
+      happy: 0,
+      neutral: 0,
+      sad: 0,
+      tired: 0,
+      angry: 0,
+    };
+
+    raw.forEach(item => {
+      if (moodCount[item.mood] !== undefined) {
+        moodCount[item.mood]++;
+      }
+    });
+
+    const labels = ["開心", "平靜", "難過", "疲倦", "生氣"];
+    const data = Object.values(moodCount);
+
+    const ctx = document.getElementById("moodChart").getContext("2d");
+
+    new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "情緒次數",
+          data: data,
+          backgroundColor: [
+            "#FFE066", // happy
+            "#D6D6D6", // neutral
+            "#A0D2FF", // sad
+            "#CBA1E6", // tired
+            "#FFA69E"  // angry
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "bottom"
+          }
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

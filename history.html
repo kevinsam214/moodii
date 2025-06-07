@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>心情歷史紀錄 - Moodii 心語日記</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="main-title">🕰️ 心情歷史紀錄</h1>
+    <p class="hint-text">看看最近的你，是什麼樣的情緒組成的 💛</p>
+    <div id="history-list" class="history-list"></div>
+
+    <div class="nav-group">
+      <button class="secondary-btn" onclick="window.location.href='chart.html'">📊 查看統計圖</button>    
+      <button class="main-btn" onclick="window.location.href='index.html'">回首頁</button>
+    </div>
+    <div class="export-group">
+      <button class="secondary-btn" onclick="exportJSON()">📦 下載 JSON</button>
+      <button class="secondary-btn" onclick="exportCSV()">📄 下載 CSV</button>
+    </div>
+    <div class="import-group">
+      <label class="secondary-btn">
+        📤 匯入 JSON
+        <input type="file" id="importInput" accept=".json" hidden />
+      </label>
+    </div>
+    
+    <div class="danger-group">
+      <button class="danger-btn" onclick="clearAllRecords()">⚠️ 清空所有紀錄</button>
+    </div>
+  </div>
+
+  <script>
+    const moodIcons = {
+      happy: "😊",
+      neutral: "😐",
+      sad: "😢",
+      tired: "😖",
+      angry: "😡"
+    };
+
+    const moodColors = {
+        happy: "#FFF5C0",
+        neutral: "#EEEEEE",
+        sad: "#D6E9FF",
+        tired: "#EAD9F2",
+        angry: "#FFC7B2"
+      };
+
+      const specialHighlight = "#FFF8D5"; // starred 專用色
+
+    const history = JSON.parse(localStorage.getItem("moodHistory")) || [];
+    const sorted = history.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
+    const list = document.getElementById("history-list");
+
+    if (sorted.length === 0) {
+      list.innerHTML = "<p>目前沒有紀錄喔，快去寫下今天的心情吧！</p>";
+    } else {
+      sorted.forEach((item, index) => {
+        const box = document.createElement("div");
+        box.className = "history-item";
+        box.style.backgroundColor = item.starred
+          ? specialHighlight
+          : (moodColors[item.mood] || "#EEE");
+
+        const isStarred = item.starred === true;
+
+        box.innerHTML = `
+  <div class="history-date">${item.date}</div>
+<img src="images/${isStarred ? 'star-filled.png' : 'star-empty.png'}"
+     class="star-icon corner-top-right"
+     data-date="${item.date}"
+     title="${isStarred ? '已標註為特別的一天' : '點我標註為特別的一天'}" />
+
+<button class="delete-btn corner-bottom-right" data-date="${item.date}" title="刪除">🗑️</button>
+
+  </div>
+  <div class="history-mood">${moodIcons[item.mood] || "🌈"}</div>
+  <div class="history-text">${item.text || "（沒有寫內容）"}</div>
+`;
+
+
+
+
+        list.appendChild(box);
+      });
+
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const date = btn.getAttribute('data-date');
+          if (confirm("確定要刪除這筆紀錄嗎？")) {
+            const allRecords = JSON.parse(localStorage.getItem("moodHistory")) || [];
+            const updated = allRecords.filter(item => item.date !== date);
+
+            localStorage.setItem("moodHistory", JSON.stringify(updated));
+            location.reload(); // ✅ 重新載入畫面
+          }
+        });
+      });
+
+      document.querySelectorAll('.star-icon').forEach(img => {
+        img.addEventListener('click', () => {
+          const date = img.getAttribute('data-date');
+          const allRecords = JSON.parse(localStorage.getItem("moodHistory")) || [];
+
+          const updated = allRecords.map(item => {
+            if (item.date === date) {
+              return { ...item, starred: !item.starred };
+            } else {
+              return item;
+            }
+          });
+
+          localStorage.setItem("moodHistory", JSON.stringify(updated));
+          location.reload();
+        });
+      });
+
+
+
+
+    }
+
+    function exportJSON() {
+        const data = localStorage.getItem("moodHistory") || "[]";
+        const blob = new Blob([data], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        downloadFile(url, "mood-history.json");
+      }
+
+      function exportCSV() {
+        const raw = JSON.parse(localStorage.getItem("moodHistory")) || [];
+        if (raw.length === 0) {
+          alert("目前沒有紀錄可匯出！");
+          return;
+        }
+
+        const header = ["日期", "情緒", "文字", "是否標註"];
+        const rows = raw.map(item => [
+          item.date,
+          item.mood,
+          `"${(item.text || "").replace(/"/g, '""')}"`, // 處理引號
+          item.starred ? "⭐" : ""
+        ]);
+
+        const csvContent =
+          [header, ...rows]
+            .map(row => row.join(","))
+            .join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        downloadFile(url, "mood-history.csv");
+      }
+
+      function downloadFile(url, filename) {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function clearAllRecords() {
+          const confirmClear = confirm("你確定要清空所有紀錄嗎？這個動作無法復原！");
+          if (confirmClear) {
+            localStorage.removeItem("moodHistory");
+            alert("所有紀錄已清除！");
+            location.reload();
+          }
+        }
+
+        document.getElementById("importInput").addEventListener("change", function (event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              try {
+                const data = JSON.parse(e.target.result);
+                if (!Array.isArray(data)) throw new Error("格式錯誤");
+
+                const valid = data.every(item => item.date && item.mood);
+                if (!valid) throw new Error("缺少必要欄位");
+
+                localStorage.setItem("moodHistory", JSON.stringify(data));
+                alert("匯入成功！畫面將重新載入");
+                location.reload();
+              } catch (err) {
+                alert("❌ 匯入失敗，請確認檔案格式正確");
+                console.error(err);
+              }
+            };
+            reader.readAsText(file);
+          });
+
+  </script>
+</body>
+
+</html>

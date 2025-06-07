@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moodii 心語日記</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#E9A68B" />
+</head>
+
+<body>
+  <div class="container">
+    <img src="images/cover-clean.png" alt="Moodii 首頁圖" class="hero-img" />
+    <h1 class="main-title">心語日記</h1>
+    <p class="hint-text">今天，屬於你的心情是什麼呢？</p>
+    <button class="main-btn" onclick="fadeToNext()">開始記錄</button>
+
+    <div class="calendar-section">
+      <div class="calendar-header">
+        <button class="nav-arrow" onclick="changeMonth(-1)">←</button>
+        <h2 class="calendar-title" id="calendar-title">🗓 心情月曆</h2>
+        <button class="nav-arrow" onclick="changeMonth(1)">→</button>
+      </div>
+      <div id="calendar-grid" class="calendar-grid"></div>
+    </div>
+    
+    
+    <button class="secondary-btn" onclick="window.location.href='history.html'">查看歷史紀錄</button>
+    <!-- 建議放在首頁底部按鈕群下面 -->
+    <button id="install-btn" class="secondary-btn" style="display: none;">➕ 安裝 App</button>
+
+
+  </div>
+
+  <script>
+    function fadeToNext() {
+      document.querySelector('.container').style.opacity = 0;
+      setTimeout(() => {
+        window.location.href = "input.html"; // 或換成 alert() 模擬
+      }, 500);
+    }
+
+    const moodColors = {
+        happy: "#FFF5B5",
+        neutral: "#DDDDDD",
+        sad: "#AEDBFF",
+        tired: "#D8C9EC",
+        angry: "#FFC1B6"
+      };
+
+      let currentYear = new Date().getFullYear();
+      let currentMonth = new Date().getMonth();
+
+      function generateCalendar(year, month) {
+        const title = document.getElementById("calendar-title");
+        title.textContent = `🗓 ${year}年${month + 1}月`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const grid = document.getElementById("calendar-grid");
+        grid.innerHTML = "";
+
+        const data = JSON.parse(localStorage.getItem("moodHistory")) || [];
+
+        for (let i = 0; i < firstDay; i++) {
+          const empty = document.createElement("div");
+          grid.appendChild(empty);
+        }
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const cell = document.createElement("div");
+          cell.className = "calendar-cell";
+          const dateStr = `${year}-${(month + 1).toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
+          const record = data.find(item => item.date === dateStr);
+
+          if (record) {
+            cell.style.backgroundColor = moodColors[record.mood] || "#EEE";
+            cell.setAttribute("data-text", record.text || "（沒有內容）");
+            if (record.starred) {
+              cell.innerHTML = `${d}<span class="calendar-star">⭐</span>`;
+            } else {
+              cell.textContent = d;
+            }
+          } else {
+            cell.style.opacity = 0.3;
+            cell.textContent = d;
+          }
+
+          grid.appendChild(cell);
+        }
+      }
+
+      function changeMonth(offset) {
+        currentMonth += offset;
+        if (currentMonth < 0) {
+          currentMonth = 11;
+          currentYear -= 1;
+        } else if (currentMonth > 11) {
+          currentMonth = 0;
+          currentYear += 1;
+        }
+        generateCalendar(currentYear, currentMonth);
+      }
+
+      generateCalendar(currentYear, currentMonth);
+
+      /*document.addEventListener("DOMContentLoaded", () => {
+          if ("Notification" in window) {
+            if (Notification.permission === "default") {
+              Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                  scheduleReminder();
+                }
+              });
+            } else if (Notification.permission === "granted") {
+              scheduleReminder();
+            }
+          }
+
+          function scheduleReminder() {
+            // 每 24 小時提醒一次（簡易模擬）
+            setTimeout(() => {
+              new Notification("🌟 Moodii 心語提醒", {
+                body: "今天還沒寫下你的心情喔～ Moodii 在這裡等你 💛",
+                icon: "images/moodii-default.png"
+              });
+            }, 3000); // ⚠️ DEMO 測試用：3 秒後跳出，正式可設為 6 小時、12 小時後
+          }
+        });*/
+
+        // ✅ 安裝 service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('Service Worker 已註冊成功'))
+      .catch(err => console.error('註冊失敗:', err));
+  }
+
+  // ✅ 通知提醒功能
+  document.addEventListener("DOMContentLoaded", () => {
+  // 註冊 Service Worker（只要做一次）
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('Service Worker 已註冊成功'))
+      .catch(err => console.error('註冊失敗:', err));
+  }
+
+  // 啟用通知功能
+  if ("Notification" in window) {
+    if (Notification.permission === "default") {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          scheduleReminder();
+        }
+      });
+    } else if (Notification.permission === "granted") {
+      scheduleReminder();
+    }
+  }
+
+  function scheduleReminder() {
+    // DEMO 用：3 秒後出現通知，正式環境可改為每天定時
+    setTimeout(() => {
+      new Notification("🌟 Moodii 心語提醒", {
+        body: "今天還沒寫下你的心情喔～ Moodii 在這裡等你 💛",
+        icon: "images/moodii-default.png"
+      });
+    }, 3000);
+  }
+});
+
+
+  let deferredPrompt;
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault(); // 阻止瀏覽器自動顯示
+    deferredPrompt = e;
+
+    const installBtn = document.getElementById("install-btn");
+    installBtn.style.display = "inline-block"; // 顯示安裝按鈕
+
+    installBtn.addEventListener("click", () => {
+      installBtn.style.display = "none"; // 點了就隱藏
+      deferredPrompt.prompt(); // 彈出安裝提示
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === "accepted") {
+          console.log("使用者接受安裝");
+        } else {
+          console.log("使用者拒絕安裝");
+        }
+        deferredPrompt = null;
+      });
+    });
+  });
+
+  </script>
+</body>
+
+</html>

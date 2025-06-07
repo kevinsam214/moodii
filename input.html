@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>心語日記 - 輸入情緒</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="main-title">寫下今天的心語</h1>
+    <input type="text" placeholder="有點累了呢..." class="text-input">
+
+    <p class="hint-text">選擇你的心情：</p>
+    <div class="emoji-group">
+      <span class="emoji" data-value="happy">😊</span>
+      <span class="emoji" data-value="neutral">😐</span>
+      <span class="emoji" data-value="sad">😢</span>
+      <span class="emoji" data-value="tired">😖</span>
+      <span class="emoji" data-value="angry">😡</span>
+    </div>
+    
+
+    <button class="main-btn" id="submit-btn">完成記錄</button>
+    <button class="secondary-btn" onclick="window.location.href='index.html'">回首頁</button>
+
+    <div id="response" class="mood-response"></div>
+  </div>
+
+
+  <script>
+    const emojis = document.querySelectorAll('.emoji');
+      let selectedMood = "";
+
+      // 選擇表情邏輯
+      emojis.forEach(emoji => {
+        emoji.addEventListener('click', () => {
+          emojis.forEach(e => e.classList.remove('selected'));
+          emoji.classList.add('selected');
+          selectedMood = emoji.getAttribute('data-value');
+        });
+      });
+
+      // 完成記錄按鈕邏輯（只有一個事件監聽器！）
+      document.getElementById('submit-btn').addEventListener('click', () => {
+        const text = document.querySelector('.text-input').value;
+        const today = new Date().toISOString().slice(0, 10);
+
+        if (!selectedMood) {
+          alert("請先選擇你的心情喔！");
+          return;
+        }
+
+        const record = {
+          date: today,
+          mood: selectedMood,
+          text: text
+        };
+
+        const existing = JSON.parse(localStorage.getItem("moodHistory")) || [];
+        const updated = existing.filter(item => item.date !== today);
+        updated.push(record);
+
+        localStorage.setItem("moodHistory", JSON.stringify(updated));
+        localStorage.setItem("selectedMood", selectedMood); // 留給 result.html 用
+
+        alert("已記錄！你很棒 💛");
+        window.location.href = "result.html";
+      });
+
+      // ✅ 偵測今天是否已記錄
+        window.addEventListener("DOMContentLoaded", () => {
+          const today = new Date().toISOString().slice(0, 10);
+          const existing = JSON.parse(localStorage.getItem("moodHistory")) || [];
+
+          const todayRecord = existing.find(item => item.date === today);
+
+          if (todayRecord) {
+            // 已記錄過 ➜ 顯示提示、停用按鈕
+            const notice = document.createElement("p");
+            notice.textContent = "你今天已經記錄過囉 😊 明天再來找我吧～";
+            notice.style.color = "#888";
+            notice.style.marginTop = "12px";
+            notice.style.fontSize = "16px";
+            notice.style.fontStyle = "italic";
+
+            document.querySelector(".container").appendChild(notice);
+
+            const btn = document.getElementById("submit-btn");
+            btn.disabled = true;
+            btn.style.backgroundColor = "#ccc";
+            btn.style.cursor = "not-allowed";
+          }
+        });
+
+  </script>
+  
+</body>
+
+</html>

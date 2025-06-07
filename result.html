@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>你的心語精靈回應</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet" />
+  <style>
+    .container {
+      opacity: 0;
+      animation: fadeIn 1.2s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    .hero-img {
+      max-width: 260px;
+      margin-bottom: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-6px);
+      }
+    }
+
+    .mood-response {
+      font-size: 18px;
+      color: #5d4440;
+      background-color: #FFF3EC;
+      padding: 16px;
+      border-radius: 12px;
+      max-width: 300px;
+      margin: 24px auto 16px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      min-height: 60px;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <img id="moodiiImage" src="images/moodii-default.png" alt="Moodii 精靈" class="hero-img" />
+    <div id="emotion-message" class="mood-response">載入中...</div>
+
+    <button class="main-btn" onclick="window.location.href='index.html'">回首頁</button>
+    <button class="secondary-btn" onclick="window.location.href='history.html'">查看歷史紀錄</button>
+  </div>
+
+  <script>
+    const mood = localStorage.getItem("selectedMood");
+
+    const moodData = {
+      happy: {
+        img: "hedgehog-happy.png",
+        text: "你今天的笑容，好有力量 💛"
+      },
+      neutral: {
+        img: "hedgehog-neutral.png",
+        text: "平淡也很棒，給自己一點空白吧 🌿"
+      },
+      sad: {
+        img: "hedgehog-sad.png",
+        text: "我在這裡陪你，難過沒關係 💧"
+      },
+      tired: {
+        img: "hedgehog-tired.png",
+        text: "先把疲憊交給我，我幫你抱抱 💭"
+      },
+      angry: {
+        img: "hedgehog-angry.png",
+        text: "你努力忍住情緒了，真的很棒 ❤️‍🔥"
+      }
+    };
+
+    const image = document.getElementById("moodiiImage");
+    const box = document.getElementById("emotion-message");
+
+    // 📌 取得對應資料
+    const data = moodData[mood] || {
+      img: "moodii-default.png",
+      text: "你好棒，願你每天都有力量 🍀"
+    };
+
+    // 🖼️ 設定圖片
+    image.src = "images/" + data.img;
+
+    // 📝 打字動畫函式
+    function typeText(text, targetElement, delay = 40) {
+      let index = 0;
+      targetElement.textContent = "";
+      const timer = setInterval(() => {
+        targetElement.textContent += text.charAt(index);
+        index++;
+        if (index >= text.length) clearInterval(timer);
+      }, delay);
+    }
+
+    // 🔊 語音朗讀函式
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'zh-TW';
+        msg.pitch = 1;
+        msg.rate = 1;
+        msg.volume = 1;
+        window.speechSynthesis.speak(msg);
+      }
+    }
+
+    // ✅ 啟動打字動畫 + 語音
+    typeText(data.text, box);
+    speak(data.text);
+  </script>
+</body>
+
+</html>
