@@ -11,10 +11,20 @@ exports.handler = async function (event) {
         "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo", // 他們應該支援此模型
-        messages: [{ role: "user", content: userText }],
-        temperature: 0.7
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "你是一位溫柔、善解人意的心靈陪伴者，說話溫暖療癒。根據使用者的日記，回一句可愛又鼓舞的話。不要太長，要讓人微笑。"
+          },
+          {
+            role: "user",
+            content: userText
+          }
+        ],
+        temperature: 0.8
       })
+      
     });
 
     const data = await response.json();
