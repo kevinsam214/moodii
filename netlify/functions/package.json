@@ -1,8 +1,7 @@
 {
-  "name": "moodii-functions",
+  "name": "moodii",
   "version": "1.0.0",
-  "type": "module",
   "dependencies": {
-    "openai": "^4.24.0"
+    "openai": "^4.0.0"
   }
 }
