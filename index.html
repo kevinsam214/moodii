@@ -12,6 +12,10 @@
 </head>
 
 <body>
+  <div id="transition-mask">
+    <div class="mask-content">🦔 Moodii 跳轉中...</div>
+  </div>
+  
   <button id="bgm-toggle" aria-label="背景音樂切換" title="點我切換背景音樂">🔈</button>
 
   <audio id="bgm" loop>
@@ -22,7 +26,7 @@
     <img src="images/cover-clean.png" alt="Moodii 首頁圖" class="hero-img" />
     <h1 class="main-title">心語日記</h1>
     <p class="hint-text">今天，屬於你的心情是什麼呢？</p>
-    <button class="main-btn" onclick="fadeToNext()">開始記錄</button>
+    <button class="main-btn" data-href="input.html">開始記錄</button>
 
     <div class="calendar-section">
       <div class="calendar-header">
@@ -34,7 +38,8 @@
     </div>
     
     
-    <button class="secondary-btn" onclick="window.location.href='history.html'">查看歷史紀錄</button>
+    <a class="secondary-btn" data-href="history.html">查看歷史紀錄</a>
+
     
     <!-- 建議放在首頁底部按鈕群下面 -->
     <button id="install-btn" class="secondary-btn" style="display: none;">➕ 安裝 App</button>
@@ -43,12 +48,12 @@
   </div>
 
   <script>
-    function fadeToNext() {
+    /*function fadeToNext() {
       document.querySelector('.container').style.opacity = 0;
       setTimeout(() => {
         window.location.href = "input.html"; // 或換成 alert() 模擬
       }, 500);
-    }
+    }*/
 
     const moodColors = {
         happy: "#FFF5B5",
@@ -204,6 +209,7 @@
 
   </script>
   <script src="js/bgm.js"></script>
+  <script src="js/transition.js"></script>
 </body>
 
 </html>
